@@ -3,37 +3,36 @@ package main
 import (
     "net"
     "fmt"
-	"time"
+	"strconv"
+	"strings"
+	"os"
+	"bufio"
 )
 
 var playRoom *PlayRoom = NewPlayRoom()
 var moves chan *Move = make(chan *Move)
 var firstUserTrigger chan bool = make(chan bool)
 var gameStarted bool = false
-
-
-func ProcessMove(m *Move){
-	
-}
-
-func GameEngine() int {
-	for {
-		select{
-		case m := <- moves:
-			ProcessMove(m) 
-		case <- firstUserTrigger:
-			fmt.Println("first user arrived")
-			fmt.Println("starting count down 20 seconds")
-			<- time.After(20 * time.Second)
-			fmt.Println("count down ends. Game Started")
-			gameStarted = true
-			playRoom.StartGame()			
-		}
-		
-	}
-}
+var n int
+var m int
+var maze *Maze
 
 func main() {
+	
+    // get game config
+    reader := bufio.NewReader(os.Stdin)
+    fmt.Println("Enter N")
+    input, _ := reader.ReadString('\n')
+    input = strings.TrimSpace(input)
+    n, _ = strconv.Atoi(input)
+    fmt.Println("Enter your M")
+    input, _ = reader.ReadString('\n')
+    input = strings.TrimSpace(input)
+    m, _ = strconv.Atoi(input)
+    fmt.Printf("N: %d, M: %d \n", n, m)
+
+    // build maze
+    maze = NewMaze(n, m)
 
 	listener, _ := net.Listen("tcp", ":6666")
 

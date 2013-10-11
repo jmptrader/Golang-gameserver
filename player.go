@@ -7,8 +7,10 @@
  */
 package main
 
-import "math/rand"
-
+import (
+	"math/rand"
+	"fmt"
+)
 
 type Player struct {
 	Id int
@@ -18,10 +20,35 @@ type Player struct {
 }
 
 func NewPlayer(id, dim int) *Player {
-    return &Player{
+	fmt.Printf("Creating player with ID %d and dimension %d. \n", id, dim)
+	var randX int
+	var randY int
+	uniqLoc := true
+	for {
+		uniqLoc = true
+		randX = rand.Intn(dim)
+		randY = rand.Intn(dim)
+		for _, player := range maze.Players {
+			fmt.Println(player.X)
+			fmt.Println(randX)
+			fmt.Println(player.Y)
+			fmt.Println(randY)
+			fmt.Printf("\n\n")
+			if player.X == randX && player.Y == randY {
+				fmt.Println("cannot occupied another players location, regenerating again.")
+				continue
+			}
+		}
+		if uniqLoc {
+			break
+		}
+	}
+    player := &Player{
         Id: id,
         TreasuresOwned: 0,
-        X: rand.Intn(dim),
-        Y: rand.Intn(dim),
+        X: randX,
+        Y: randY,
     }
+	fmt.Println(player)
+	return player
 }

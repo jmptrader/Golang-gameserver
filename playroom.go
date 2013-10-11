@@ -7,20 +7,17 @@ import (
 )
  
 type PlayRoom struct {
-	clients []*Client
+	clients []*Client // for maintaining connection read/write
+	players []*Player // the player state object
 	joins chan net.Conn
 	incoming chan string
 	outgoing chan string
 }
 
-func (playRoom *PlayRoom) StartGame() {
+func (playRoom *PlayRoom) BroadcastInitialState() {
 	for _, client := range playRoom.clients {
-		client.outgoing <- "hi all!!"
+		client.outgoing <- maze.ToJSON()
 	}
-}
-
-func dirIsValid(dir string) bool {
-	return dir == "S" || dir == "N" || dir == "E" || dir == "W"
 }
 
 /*
@@ -33,6 +30,9 @@ func (playRoom *PlayRoom) Join(connection net.Conn) {
 	if len(playRoom.clients) == 1 {
 		firstUserTrigger <- true
 	}
+	player := NewPlayer(len(playRoom.clients)-1, n) 
+	playRoom.players = append(playRoom.players, player)
+	maze.AddPlayer(player)
 	go func() { 
 		for { 
 			dir := <-client.incoming
@@ -41,18 +41,19 @@ func (playRoom *PlayRoom) Join(connection net.Conn) {
 				if dirIsValid(dir){
 					move := &Move{
 						client: client,
+						player: player,
 						dir: dir,
 					} 
 					moves <- move		
 				} else {
 					msg = "Valid moves are: N, S, E, W"
 					fmt.Println(msg)
-					client.outgoing <- msg	
+					client.echoer <- msg	
 				}	
 			} else {
 				msg = "Do not move yet. Game has yet to start"
 				fmt.Println(msg)
-				client.outgoing <- msg
+				client.echoer <- msg
 			}		
 		} 
 	}()
@@ -72,6 +73,7 @@ func (playRoom *PlayRoom) Listen() {
 func NewPlayRoom() *PlayRoom {
 	playRoom := &PlayRoom{
 		clients: make([]*Client, 0),
+		players: make([]*Player, 0),
 		joins: make(chan net.Conn),
 		incoming: make(chan string),
 		outgoing: make(chan string),
