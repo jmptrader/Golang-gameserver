@@ -7,8 +7,10 @@
  */
 package main
 
-import "encoding/json"
-
+import (
+	"encoding/json"
+	"fmt"
+)
 type Maze struct {
 	Dim int
 	Treasures []*Treasure
@@ -36,6 +38,39 @@ func (maze *Maze) AddPlayer(player *Player) *Maze{
 func (maze *Maze) ToJSON() string {
 	jsonByteArray, _ := json.Marshal(maze)
 	return string(jsonByteArray[:])
+}
+
+func (maze *Maze) Print() {
+	fmt.Println("============> Printing Maze:")	
+	printed := false
+	for y:=0; y<maze.Dim; y++ {
+		for x:=0; x<maze.Dim; x++ {
+			printed = false
+			for _, player := range maze.Players {
+				if player.X == x && player.Y == y {
+					fmt.Printf("[%d] ", player.Id)
+					printed = true
+					break	
+				}
+			}
+			if printed {
+				continue
+			}
+			for _, treasure := range maze.Treasures {
+				if treasure.X == x && treasure.Y == y {
+					fmt.Printf("<%d> ", treasure.Id)
+					printed = true
+					break
+				}
+			}
+			if !printed {
+				fmt.Printf("- ")
+			}
+			
+		}
+		fmt.Println("")
+	}
+	fmt.Println("========> End Printing Maze:")
 }
 
 func MazeFromJSON(str string) *Maze {

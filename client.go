@@ -21,26 +21,41 @@ type Client struct {
 	writer   *bufio.Writer
 }
 
+func (client *Client) Close() {
+	// remove client and player from playroom and maze
+}
+
 func (client *Client) Read() {
 	for {
 	    fmt.Println("Reading..")
-		line, _ := client.reader.ReadString('\n')
+		line, err := client.reader.ReadString('\n')
+		fmt.Println(line)
+		if err != nil {
+			client.Close()
+			return
+		}
 		client.incoming <- line
-		client.writer.WriteString("\n\n----------------------------------------\n\n")
-		client.writer.Flush()
 	}
 }
 
 func (client *Client) Write() {
 	for data := range client.outgoing {
-		client.writer.WriteString("JSON: \n" + data + "\n\n----------------------------------------\n\n")
+		_, err := client.writer.WriteString(data + "\n")
+		if err != nil {
+			client.Close()
+			return
+		}
 		client.writer.Flush()
 	}
 }
 
 func (client *Client) Echo() {
 	for data := range client.echoer {
-		client.writer.WriteString("ECHO: \n" + data + "\n\n----------------------------------------\n\n")
+		_, err := client.writer.WriteString(data + "\n")
+		if err != nil {
+			client.Close()
+			return
+		}
 		client.writer.Flush()
 	}
 }
